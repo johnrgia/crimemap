@@ -128,7 +128,7 @@ def main():
 
     supabase = create_client(
         os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_SECRET_KEY"],
+        os.environ["SUPABASE_SERVICE_ROLE_KEY"],
     )
     gmaps = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
     stats = Stats()

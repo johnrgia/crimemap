@@ -19,7 +19,7 @@ def test_supabase():
     try:
         from supabase import create_client
         url = os.environ["SUPABASE_URL"]
-        key = os.environ["SUPABASE_SECRET_KEY"]
+        key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
         client = create_client(url, key)
         result = client.table("departments").select("id").limit(1).execute()
         print(f"OK (departments table accessible, {len(result.data)} rows)")
@@ -73,7 +73,7 @@ def test_anthropic():
         import anthropic
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=50,
             messages=[{"role": "user", "content": "Reply with only: CONNECTION_OK"}],
         )
@@ -91,7 +91,7 @@ def test_incident_categories():
     try:
         from supabase import create_client
         url = os.environ["SUPABASE_URL"]
-        key = os.environ["SUPABASE_SECRET_KEY"]
+        key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
         client = create_client(url, key)
         result = client.table("incident_categories").select("category, subcategory").execute()
         count = len(result.data)

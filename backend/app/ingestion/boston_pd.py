@@ -221,7 +221,7 @@ Return ONLY the JSON object, no markdown fences, no explanation."""
     logger.info(f"Sending {len(offense_descriptions)} descriptions to Claude for mapping...")
 
     response = claude_client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=8192,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -607,7 +607,7 @@ def run_ingestion(limit: Optional[int] = None, do_geocode: bool = False):
     # Initialize clients
     supabase = create_client(
         os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_SECRET_KEY"],
+        os.environ["SUPABASE_SERVICE_ROLE_KEY"],
     )
     claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 

@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def main():
     supabase = create_client(
         os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_SECRET_KEY"],
+        os.environ["SUPABASE_SERVICE_ROLE_KEY"],
     )
     claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
@@ -192,7 +192,7 @@ Return ONLY the JSON object."""
 
     logger.info("Sending descriptions to Claude for mapping...")
     response = claude.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=8192,
         messages=[{"role": "user", "content": prompt}],
     )

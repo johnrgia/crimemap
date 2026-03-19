@@ -11,7 +11,7 @@ load_dotenv()
 
 supabase = create_client(
     os.environ["SUPABASE_URL"],
-    os.environ["SUPABASE_SECRET_KEY"],
+    os.environ["SUPABASE_SERVICE_ROLE_KEY"],
 )
 
 # 1. Check departments
