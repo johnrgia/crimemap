@@ -281,19 +281,17 @@ async def list_departments():
     """Get all registered police departments."""
     supabase = get_supabase()
 
-    result = supabase.table("departments").select("*").order("state").order("city").execute()
+    dept_result = supabase.table("departments").select("*").order("state").order("city").execute()
 
+    # One count query per department (acceptable: 1-20 departments max)
     departments = []
-    for row in result.data:
-        # Get incident count for this department
+    for row in dept_result.data:
         count_result = (
             supabase.table("incidents")
             .select("id", count="exact")
             .eq("department_id", row["id"])
             .execute()
         )
-        count = count_result.count if count_result.count is not None else 0
-
         departments.append(DepartmentInfo(
             id=row["id"],
             name=row["name"],
@@ -304,7 +302,7 @@ async def list_departments():
             data_format=row.get("data_format"),
             fetch_cadence=row.get("fetch_cadence"),
             is_active=row.get("is_active", True),
-            incident_count=count,
+            incident_count=count_result.count or 0,
         ))
 
     return departments

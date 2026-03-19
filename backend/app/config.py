@@ -3,15 +3,15 @@ CrimeMap application configuration.
 Loads settings from environment variables / .env file.
 """
 
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     # Supabase
     supabase_url: str
-    supabase_anon_key: str
-    supabase_service_role_key: str
+    supabase_service_role_key: str  # private — backend only
 
     # Direct Postgres connection
     database_url: str
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
+        "extra": "ignore",
     }
 
 

@@ -4,7 +4,7 @@ A civic transparency platform that ingests police incident reports, normalizes t
 
 ## Current State
 
-**Phase 1 (Complete):** Data foundation — Supabase + PostGIS database, ingestion pipeline for Boston PD, 252,370 incidents fully ingested with 100% geocoding coverage, 44 standardized categories.
+**Phase 1 (Complete):** Data foundation — Supabase + PostGIS database, ingestion pipeline for Boston PD, 252,370 incidents fully ingested with 100% geocoding coverage.
 
 **Phase 2 (Complete):** FastAPI backend — 6 API endpoints (search by radius, paginated list, incident detail, categories, departments, area stats). All wired to the PostGIS `search_incidents_by_radius` function.
 
@@ -31,36 +31,37 @@ crimemap/
 ├── backend/
 │   └── app/
 │       ├── main.py              # FastAPI entry point
-│       ├── config.py             # Pydantic settings from .env
+│       ├── config.py            # Pydantic settings from .env
 │       ├── api/
-│       │   ├── routes.py         # All API endpoints
-│       │   ├── models.py         # Pydantic request/response schemas
-│       │   └── deps.py           # Supabase client dependency
-│       ├── ingestion/
-│       │   └── boston_pd.py       # Boston PD CSV ingestion pipeline
-│       └── services/
-│           └── geocoding.py      # Geocoding with cache
+│       │   ├── routes.py        # All API endpoints
+│       │   ├── models.py        # Pydantic request/response schemas
+│       │   └── deps.py          # Supabase client dependency
+│       └── ingestion/
+│           └── boston_pd.py     # Boston PD CSV ingestion pipeline
 ├── frontend/
 │   ├── index.html
-│   ├── main.jsx                  # React entry point
-│   └── App.jsx                   # Main app component
+│   ├── main.jsx                 # React entry point + global styles
+│   ├── App.jsx                  # Main app component (layout + state)
+│   ├── api.js                   # fetchJSON helper + API_BASE
+│   ├── constants.js             # BOSTON_CENTER, MAPBOX_TOKEN, CATEGORY_COLORS
+│   └── components/
+│       ├── Sidebar.jsx          # Filters, category breakdown, area stats
+│       ├── MapView.jsx          # Mapbox GL JS map + markers
+│       ├── ListView.jsx         # Paginated incident table
+│       └── IncidentDetail.jsx   # Incident detail modal
 ├── database/
-│   └── 001_initial_schema.sql    # Full schema migration
+│   └── 001_initial_schema.sql   # Full schema migration
 ├── scripts/
-│   ├── test_connections.py       # Verify all services
-│   ├── diagnose_boston_data.py    # CSV data quality analysis
-│   ├── check_offense_descriptions.py
-│   ├── verify_ingestion.py       # Check DB state
-│   ├── remap_categories.py       # Re-map categories with Claude
-│   ├── fix_unmapped_v2.py        # Fix large category batches
-│   ├── check_unmapped.py
-│   └── geocode_backfill.py       # Backfill missing coordinates
-├── .env                          # Secrets (not in git)
-├── .env.example                  # Template for .env
+│   ├── test_connections.py      # Verify all services
+│   ├── verify_ingestion.py      # Check DB state post-ingestion
+│   ├── remap_categories.py      # Re-map categories with Claude
+│   └── geocode_backfill.py      # Backfill missing coordinates
+├── .env                         # Secrets (not in git)
+├── .env.example                 # Template for .env
 ├── .gitignore
-├── requirements.txt              # Python dependencies
-├── package.json                  # Node dependencies
-└── vite.config.js                # Vite config with API proxy
+├── requirements.txt             # Python dependencies
+├── package.json                 # Node dependencies
+└── vite.config.js               # Vite config with API proxy
 ```
 
 ## Database Schema
@@ -74,7 +75,7 @@ Key indexes: GIST on `location`, B-tree on `incident_date`, `category_id`, `depa
 ## Environment Variables
 
 Required in `.env` (see `.env.example`):
-- `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `DATABASE_URL` (direct Postgres connection)
 - `GOOGLE_MAPS_API_KEY`
 - `ANTHROPIC_API_KEY`
@@ -94,15 +95,17 @@ npm install
 npm run dev
 ```
 
-Frontend runs on `http://localhost:3000` with API proxy to `:8000`.
+Frontend runs on `http://localhost:5173` with API proxy to `:8000`.
+
+**WSL2 note:** Run `npm run dev` using WSL2-native Node.js (not Windows Node). Install via `nvm` inside Ubuntu if needed.
 
 ## Key Design Decisions
 
 - **Two-layer ingestion:** Raw data → normalized incidents. Allows re-processing without re-fetching.
-- **LLM category mapping:** Claude maps department-specific offense descriptions to our 44-category taxonomy. Only unique values are sent (121 for Boston PD = 1 API call).
+- **LLM category mapping:** Claude maps department-specific offense descriptions to our standardized taxonomy. Only unique values are sent (121 for Boston PD = 1 API call).
 - **Geocoding cache:** Every address geocoded once, stored in `geocoding_cache` table. Saves significant Google API costs on repeat addresses.
 - **PostGIS for spatial queries:** `ST_DWithin` with GIST index handles radius search at scale.
-- **Supabase new API keys:** Project uses `sb_publishable_` and `sb_secret_` keys (not legacy `anon`/`service_role`).
+- **Supabase credentials:** Backend uses `SUPABASE_SERVICE_ROLE_KEY` (service role). `SUPABASE_ANON_KEY` is available for future client-side auth.
 
 ## Ingestion Pipeline Pattern
 
@@ -117,7 +120,7 @@ For each new department:
 
 ## Data Coverage
 
-- **Boston PD:** 252,370 incidents (2023–Mar 2026), 100% geocoded, 44 categories
+- **Boston PD:** 252,370 incidents (2023–Mar 2026), 100% geocoded
 - **Target:** 20 largest MA cities, then national expansion
 
 ## Coding Conventions
